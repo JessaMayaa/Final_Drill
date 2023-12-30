@@ -1,0 +1,114 @@
+/* Your CSS styles for the application */
+/* You can add more styles based on your requirements */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #79d2e2;
+  background-image: url('image.jpg'); /* Replace 'your-background-image-url.jpg' with your actual image URL */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+h1 {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 4em;
+  color: #333;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.search-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+input[type="text"] {
+  padding: 10px;
+  width: 400px;
+  margin-right: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.upcoming-movies,
+.similar-movies {
+  margin-top: 20px;
+  font-size: 1em;
+}
+
+.movie-item {
+  display: flex;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  background-color: #fff;
+}
+
+.movie-item:hover {
+  transform: translateY(-5px);
+}
+
+.movie-poster img {
+  width: 150px;
+  height: auto;
+  margin-right: 10px;
+}
+
+.movie-info {
+  flex: 1;
+  padding: 15px;
+}
+
+.movie-info h3 {
+  margin-top: 0;
+  font-size: 1.3em;
+  color: #333;
+}
+
+.movie-info p {
+  margin: 8px 0;
+  color: #555;
+}
+
+.movie-info button {
+  padding: 8px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.movie-info button:hover {
+  background-color: #0056b3;
+}
