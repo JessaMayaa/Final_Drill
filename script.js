@@ -1,10 +1,62 @@
+// script.js
+
+// Function to fetch upcoming movies and display them
+function fetchUpcomingMovies() {
+  const apiKey = 'bd9c9c29'; // Replace with your actual API key for upcoming movies
+  const upcomingUrl = `https://api.themoviedb.org/3/movie/upcoming?api_key=${apiKey}&language=en-US&page=1`;
+
+  fetch(upcomingUrl)
+    .then(response => response.json())
+    .then(data => {
+      const upcomingMoviesContainer = document.getElementById('upcomingMovies');
+      upcomingMoviesContainer.innerHTML = ''; // Clear previous content
+
+      data.results.forEach(movie => {
+        const movieElement = document.createElement('div');
+        movieElement.classList.add('movie');
+        movieElement.innerHTML = `<h3>${movie.title}</h3>
+                                  <p>${movie.release_date}</p>
+                                  <p>${movie.overview}</p>`;
+        upcomingMoviesContainer.appendChild(movieElement);
+      });
+    })
+    .catch(error => {
+      console.error('Error fetching upcoming movies:', error);
+    });
+}
+
+// Function to fetch suggested movies and display them
+function fetchSuggestedMovies() {
+  const apiKey = 'bd9c9c29'; // Replace with your actual API key for suggested movies
+  const suggestedUrl = `https://api.themoviedb.org/3/movie/suggested?api_key=${apiKey}&language=en-US&page=1`;
+
+  fetch(suggestedUrl)
+    .then(response => response.json())
+    .then(data => {
+      const suggestedMoviesContainer = document.getElementById('similarMovies');
+      suggestedMoviesContainer.innerHTML = ''; // Clear previous content
+
+      data.results.forEach(movie => {
+        const movieElement = document.createElement('div');
+        movieElement.classList.add('movie');
+        movieElement.innerHTML = `<h3>${movie.title}</h3>
+                                  <p>${movie.release_date}</p>
+                                  <p>${movie.overview}</p>`;
+        suggestedMoviesContainer.appendChild(movieElement);
+      });
+    })
+    .catch(error => {
+      console.error('Error fetching suggested movies:', error);
+    });
+}
+
 // Function to search for movies based on user input
 function searchMovies() {
   const searchInput = document.getElementById('searchInput').value;
   const apiKey = 'bd9c9c29'; // Replace with your OMDB API key
-  const url = `https://www.omdbapi.com/?s=${searchInput}&apikey=${apiKey}`;
+  const searchUrl = `https://www.omdbapi.com/?s=${searchInput}&apikey=${apiKey}`;
 
-  fetch(url)
+  fetch(searchUrl)
     .then(response => response.json())
     .then(data => {
       displayMovies(data.Search);
@@ -44,9 +96,9 @@ function displayMovies(movies) {
 // Function to show details of a selected movie
 function showMovieDetails(movieId) {
   const apiKey = 'bd9c9c29'; // Replace with your OMDB API key
-  const url = `https://www.omdbapi.com/?i=${movieId}&apikey=${apiKey}`;
+  const movieUrl = `https://www.omdbapi.com/?i=${movieId}&apikey=${apiKey}`;
 
-  fetch(url)
+  fetch(movieUrl)
     .then(response => response.json())
     .then(data => {
       displayMovieDetails(data);
@@ -74,9 +126,9 @@ function displayMovieDetails(movie) {
 // Function to fetch and display similar movies
 function fetchSimilarMovies(movieTitle) {
   const apiKey = 'bd9c9c29'; // Replace with your OMDB API key
-  const url = `https://www.omdbapi.com/?s=${movieTitle}&apikey=${apiKey}`;
+  const similarUrl = `https://www.omdbapi.com/?s=${movieTitle}&apikey=${apiKey}`;
 
-  fetch(url)
+  fetch(similarUrl)
     .then(response => response.json())
     .then(data => {
       displaySimilarMovies(data.Search);
@@ -112,3 +164,9 @@ function displaySimilarMovies(movies) {
     similarMoviesContainer.innerHTML = '<p>No similar movies found</p>';
   }
 }
+
+// Call functions to fetch and display movies when the page loads
+window.addEventListener('load', () => {
+  fetchUpcomingMovies();
+  fetchSuggestedMovies();
+});
