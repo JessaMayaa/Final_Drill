@@ -1,75 +1,137 @@
-// script.js
+const apiKey = 'bd9c9c29'; // Replace with your OMDB API key
 
-// Function to fetch upcoming movies and display them
-function fetchUpcomingMovies() {
-  const apiKey = 'bd9c9c29'; // Replace with your actual API key for upcoming movies
-  const upcomingUrl = `https://api.themoviedb.org/3/movie/upcoming?api_key=${apiKey}&language=en-US&page=1`;
+// Load recommended movies and watchlist when the page loads
+window.onload = function () {
+  displayNewAndPopularMovies();  // Call the new function
+  displayWatchlist();  // Include any other functions you want to load initially
+};
 
-  fetch(upcomingUrl)
+
+// Show loading spinner
+function showLoading() {
+  document.getElementById('loadingSpinner').classList.remove('hidden');
+}
+
+// Hide loading spinner
+function hideLoading() {
+  document.getElementById('loadingSpinner').classList.add('hidden');
+}
+
+// Fetch and display new and popular movies
+function displayNewAndPopularMovies() {
+  const url = `https://www.omdbapi.com/?s=popular&apikey=${apiKey}`; // Use "popular" as a keyword to get trending titles
+
+  fetch(url)
     .then(response => response.json())
     .then(data => {
-      const upcomingMoviesContainer = document.getElementById('upcomingMovies');
-      upcomingMoviesContainer.innerHTML = ''; // Clear previous content
+      const newAndPopularMoviesContainer = document.getElementById('newAndPopularMovies');
+      newAndPopularMoviesContainer.innerHTML = '';
 
-      data.results.forEach(movie => {
-        const movieElement = document.createElement('div');
-        movieElement.classList.add('movie');
-        movieElement.innerHTML = `<h3>${movie.title}</h3>
-                                  <p>${movie.release_date}</p>
-                                  <p>${movie.overview}</p>`;
-        upcomingMoviesContainer.appendChild(movieElement);
-      });
+      if (data.Response === "True") {
+        data.Search.forEach(movie => {
+          const movieItem = document.createElement('div');
+          movieItem.classList.add('movie-item');
+          movieItem.innerHTML = `
+            <div class="movie-poster">
+              <img src="${movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/150'}" 
+                   alt="${movie.Title} poster" 
+                   onerror="this.src='https://via.placeholder.com/150';">
+            </div>
+            <div class="movie-info">
+              <h3>${movie.Title}</h3>
+              <p>Type: ${movie.Type}</p>
+              <p>Year: ${movie.Year}</p>
+              <button onclick="showMovieDetails('${movie.imdbID}')">Show Details</button>
+              <button onclick="addToWatchlist('${movie.imdbID}', '${movie.Title}')">Add to Watchlist</button>
+            </div>
+          `;
+          newAndPopularMoviesContainer.appendChild(movieItem);
+        });
+      } else {
+        newAndPopularMoviesContainer.innerHTML = '<p>No new and popular movies found</p>';
+      }
     })
     .catch(error => {
-      console.error('Error fetching upcoming movies:', error);
+      console.log('Error fetching new and popular movies:', error);
+      document.getElementById('newAndPopularMovies').innerHTML = '<p>Error loading new and popular movies</p>';
     });
 }
 
-// Function to fetch suggested movies and display them
-function fetchSuggestedMovies() {
-  const apiKey = 'bd9c9c29'; // Replace with your actual API key for suggested movies
-  const suggestedUrl = `https://api.themoviedb.org/3/movie/suggested?api_key=${apiKey}&language=en-US&page=1`;
 
-  fetch(suggestedUrl)
-    .then(response => response.json())
-    .then(data => {
-      const suggestedMoviesContainer = document.getElementById('similarMovies');
-      suggestedMoviesContainer.innerHTML = ''; // Clear previous content
 
-      data.results.forEach(movie => {
-        const movieElement = document.createElement('div');
-        movieElement.classList.add('movie');
-        movieElement.innerHTML = `<h3>${movie.title}</h3>
-                                  <p>${movie.release_date}</p>
-                                  <p>${movie.overview}</p>`;
-        suggestedMoviesContainer.appendChild(movieElement);
-      });
-    })
-    .catch(error => {
-      console.error('Error fetching suggested movies:', error);
-    });
-}
-
-// Function to search for movies based on user input
+// Search for movies based on user input
 function searchMovies() {
   const searchInput = document.getElementById('searchInput').value;
-  const apiKey = 'bd9c9c29'; // Replace with your OMDB API key
-  const searchUrl = `https://www.omdbapi.com/?s=${searchInput}&apikey=${apiKey}`;
+  const url = `https://www.omdbapi.com/?s=${searchInput}&apikey=${apiKey}`;
 
-  fetch(searchUrl)
+  fetch(url)
     .then(response => response.json())
     .then(data => {
-      displayMovies(data.Search);
+      if (data.Response === "True") {
+        displayMovies(data.Search, 'movieList');
+      } else {
+        document.getElementById('movieList').innerHTML = '<p>No movies found</p>';
+      }
     })
     .catch(error => {
-      console.log('Error fetching data:', error);
+      console.log('Error fetching movies:', error);
+      document.getElementById('movieList').innerHTML = '<p>Error loading movies</p>';
     });
 }
 
-// Function to display searched movies
-function displayMovies(movies) {
-  const upcomingMoviesContainer = document.getElementById('upcomingMovies');
-  upcomingMoviesContainer.innerHTML = '';
+let debounceTimer; // Declare a debounce timer
+
+// Display live search suggestions with debounce and error handling
+function liveSearchMovies() {
+  clearTimeout(debounceTimer); // Clear previous debounce timer
+
+  debounceTimer = setTimeout(() => {
+    const searchInput = document.getElementById('searchInput').value;
+    const url = `https://www.omdbapi.com/?s=${searchInput}&apikey=${apiKey}`;
+
+    // Only search if input length is greater than 2 characters
+    if (searchInput.length > 2) {
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          if (data.Response === "True") {
+            displaySuggestions(data.Search);
+          } else {
+            document.getElementById('suggestions').innerHTML = '<p>No suggestions found</p>';
+          }
+        })
+        .catch(error => {
+          console.log('Error fetching suggestions:', error);
+          document.getElementById('suggestions').innerHTML = '<p>Error loading suggestions</p>';
+        });
+    } else {
+      document.getElementById('suggestions').innerHTML = '';
+    }
+  }, 300); // Set debounce delay to 300 ms
+}
+
+
+function displaySuggestions(movies) {
+  const suggestionsContainer = document.getElementById('suggestions');
+  suggestionsContainer.innerHTML = '';
+  if (movies) {
+    movies.forEach(movie => {
+      const suggestionItem = document.createElement('div');
+      suggestionItem.classList.add('suggestion-item');
+      suggestionItem.innerText = movie.Title;
+      suggestionItem.onclick = () => {
+        document.getElementById('searchInput').value = movie.Title;
+        searchMovies();
+        suggestionsContainer.innerHTML = '';
+      };
+      suggestionsContainer.appendChild(suggestionItem);
+    });
+  }
+}
+
+function displayMovies(movies, containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
 
   if (movies) {
     movies.forEach(movie => {
@@ -77,39 +139,44 @@ function displayMovies(movies) {
       movieItem.classList.add('movie-item');
       movieItem.innerHTML = `
         <div class="movie-poster">
-          <img src="${movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/150'}" alt="${movie.Title} poster">
+          <img src="${movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/150'}" 
+               alt="${movie.Title} poster" 
+               onerror="this.src='https://via.placeholder.com/150';">
         </div>
         <div class="movie-info">
           <h3>${movie.Title}</h3>
           <p>Type: ${movie.Type}</p>
           <p>Year: ${movie.Year}</p>
           <button onclick="showMovieDetails('${movie.imdbID}')">Show Details</button>
+          <button onclick="addToWatchlist('${movie.imdbID}', '${movie.Title}')">Add to Watchlist</button>
         </div>
       `;
-      upcomingMoviesContainer.appendChild(movieItem);
+      container.appendChild(movieItem);
     });
   } else {
-    upcomingMoviesContainer.innerHTML = '<p>No movies found</p>';
+    container.innerHTML = '<p>No movies found</p>';
   }
 }
 
-// Function to show details of a selected movie
-function showMovieDetails(movieId) {
-  const apiKey = 'bd9c9c29'; // Replace with your OMDB API key
-  const movieUrl = `https://www.omdbapi.com/?i=${movieId}&apikey=${apiKey}`;
 
-  fetch(movieUrl)
+// Show movie details
+function showMovieDetails(movieId) {
+  const url = `https://www.omdbapi.com/?i=${movieId}&apikey=${apiKey}`;
+
+  fetch(url)
     .then(response => response.json())
     .then(data => {
       displayMovieDetails(data);
-      fetchSimilarMovies(data.Title);
+      displaySimilarMovies(data.Genre);
     })
     .catch(error => {
       console.log('Error fetching movie details:', error);
     });
+
+  document.getElementById('movieDetailsSection').style.display = 'block';
+  document.getElementById('backButton').style.display = 'inline-block';
 }
 
-// Function to display details of a selected movie
 function displayMovieDetails(movie) {
   const movieDetailsContainer = document.getElementById('movieDetails');
   movieDetailsContainer.innerHTML = `
@@ -118,55 +185,110 @@ function displayMovieDetails(movie) {
       <p>Type: ${movie.Type}</p>
       <p>Year: ${movie.Year}</p>
       <p>Plot: ${movie.Plot}</p>
-      <img src="${movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/300'}" alt="${movie.Title} poster">
+      <p>Genre: ${movie.Genre}</p>
+      <p>IMDb Rating: ${movie.imdbRating ? movie.imdbRating : 'N/A'}</p>
+      <img src="${movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/300'}" 
+           alt="${movie.Title} poster" 
+           onerror="this.src='https://via.placeholder.com/300';">
     </div>
   `;
 }
 
-// Function to fetch and display similar movies
-function fetchSimilarMovies(movieTitle) {
-  const apiKey = 'bd9c9c29'; // Replace with your OMDB API key
-  const similarUrl = `https://www.omdbapi.com/?s=${movieTitle}&apikey=${apiKey}`;
 
-  fetch(similarUrl)
+// Go back to movie list
+function goBack() {
+  document.getElementById('movieDetailsSection').style.display = 'none';
+}
+
+// Function to display similar movies based on genre
+function displaySimilarMovies(genre) {
+  const url = `https://www.omdbapi.com/?s=${encodeURIComponent(genre.split(',')[0])}&apikey=${apiKey}`;
+
+  fetch(url)
     .then(response => response.json())
     .then(data => {
-      displaySimilarMovies(data.Search);
+      const similarMoviesContainer = document.getElementById('similarMovies');
+      similarMoviesContainer.innerHTML = '<h3>Similar Movies</h3>';
+
+      if (data.Response === "True") {
+        data.Search.forEach(movie => {
+          const movieItem = document.createElement('div');
+          movieItem.classList.add('movie-item');
+          movieItem.innerHTML = `
+            <div class="movie-poster">
+              <img src="${movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/150'}" alt="${movie.Title} poster" 
+                   onerror="this.src='https://via.placeholder.com/150';">
+            </div>
+            <div class="movie-info">
+              <h3>${movie.Title}</h3>
+              <p>Year: ${movie.Year}</p>
+              <button onclick="showMovieDetails('${movie.imdbID}')">Show Details</button>
+            </div>
+          `;
+          similarMoviesContainer.appendChild(movieItem);
+        });
+      } else {
+        similarMoviesContainer.innerHTML += '<p>No similar movies found</p>';
+      }
     })
     .catch(error => {
       console.log('Error fetching similar movies:', error);
+      document.getElementById('similarMovies').innerHTML = '<p>Error loading similar movies</p>';
     });
 }
 
-// Function to display similar movies
-function displaySimilarMovies(movies) {
-  const similarMoviesContainer = document.getElementById('similarMovies');
-  similarMoviesContainer.innerHTML = '';
-
-  if (movies) {
-    movies.forEach(movie => {
-      const movieItem = document.createElement('div');
-      movieItem.classList.add('movie-item');
-      movieItem.innerHTML = `
-        <div class="movie-poster">
-          <img src="${movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/150'}" alt="${movie.Title} poster">
-        </div>
-        <div class="movie-info">
-          <h3>${movie.Title}</h3>
-          <p>Type: ${movie.Type}</p>
-          <p>Year: ${movie.Year}</p>
-          <button onclick="showMovieDetails('${movie.imdbID}')">Show Details</button>
-        </div>
-      `;
-      similarMoviesContainer.appendChild(movieItem);
-    });
-  } else {
-    similarMoviesContainer.innerHTML = '<p>No similar movies found</p>';
+// Manage watchlist
+function addToWatchlist(movieId, movieTitle) {
+  const watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
+  if (!watchlist.find(movie => movie.id === movieId)) {
+    watchlist.push({ id: movieId, title: movieTitle });
+    localStorage.setItem('watchlist', JSON.stringify(watchlist));
+    displayWatchlist();
   }
 }
 
-// Call functions to fetch and display movies when the page loads
-window.addEventListener('load', () => {
-  fetchUpcomingMovies();
-  fetchSuggestedMovies();
-});
+function displayWatchlist() {
+  const watchlistContainer = document.getElementById('watchlistMovies');
+  watchlistContainer.innerHTML = '';
+  const watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
+
+  if (watchlist.length > 0) {
+    watchlist.forEach(movie => {
+      const url = `https://www.omdbapi.com/?i=${movie.id}&apikey=${apiKey}`;
+      
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const watchlistItem = document.createElement('div');
+          watchlistItem.classList.add('movie-item');
+          watchlistItem.innerHTML = `
+            <div class="movie-poster">
+              <img src="${data.Poster !== 'N/A' ? data.Poster : 'https://via.placeholder.com/150'}" 
+                   alt="${data.Title} poster" 
+                   onerror="this.src='https://via.placeholder.com/150';">
+            </div>
+            <div class="movie-info">
+              <h3>${data.Title}</h3>
+              <p>Year: ${data.Year}</p>
+              <button onclick="removeFromWatchlist('${data.imdbID}')">Remove from Watchlist</button>
+            </div>
+          `;
+          watchlistContainer.appendChild(watchlistItem);
+        })
+        .catch(error => {
+          console.log('Error fetching watchlist movie details:', error);
+          watchlistContainer.innerHTML += '<p>Error loading watchlist movies</p>';
+        });
+    });
+  } else {
+    watchlistContainer.innerHTML = '<p>Your watchlist is empty.</p>';
+  }
+}
+
+
+function removeFromWatchlist(movieId) {
+  const watchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
+  const updatedWatchlist = watchlist.filter(movie => movie.id !== movieId);
+  localStorage.setItem('watchlist', JSON.stringify(updatedWatchlist));
+  displayWatchlist();
+}
