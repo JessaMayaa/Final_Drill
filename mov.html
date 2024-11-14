@@ -2,30 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Movie Searcher App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Explorer</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Search a Movie</h1>
+  <header>
+    <h1>Movie Explorer</h1>
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Search for a movie..." oninput="liveSearchMovies()">
+      <button onclick="searchMovies()">Search</button>
+    </div>
+    <div id="suggestions" class="suggestions"></div>
+  </header>
 
-  <div class="search-container">
-    <input type="text" id="searchInput" placeholder="Search for a movie...">
-    <button onclick="searchMovies()">Search</button>
-  </div>
+  <main>
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner hidden"></div>
 
-  <div class="upcoming-movies">
-    <h2>Similar Movies:</h2>
-    <div id="upcomingMovies"></div>
-  </div>
+    <!-- Searched Movies Section -->
+    <section class="movie-section">
+      <h2>Search Results</h2>
+      <div id="movieList" class="movie-list"></div>
+    </section>
 
-  <div class="movie-details" id="movieDetails">
-    <!-- Movie details will be displayed here -->
-  </div>
+    <!-- New and Popular Movies Section -->
+<section class="movie-section">
+  <h2>New and Popular Movies</h2>
+  <div id="newAndPopularMovies" class="movie-list"></div>
+</section>
 
-  <div class="similar-movies">
-    <h2>Upcoming Movies:</h2>
-    <div id="similarMovies"></div>
-  </div>
+
+    <!-- Movie Details Section -->
+    <section id="movieDetailsSection" style="display: none;">
+      <h2>Movie Details</h2>
+      <button id="backButton" onclick="goBack()" style="display: none;">Back</button>
+      <div id="movieDetails"></div>
+      <div id="similarMovies" class="movie-list"></div>
+    </section>
+
+    <!-- Watchlist Section -->
+    <section class="movie-section">
+      <h2>Watchlist</h2>
+      <div id="watchlistMovies" class="movie-list"></div>
+    </section>
+  </main>
 
   <script src="script.js"></script>
 </body>
